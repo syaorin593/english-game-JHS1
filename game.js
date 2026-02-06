@@ -1,21 +1,20 @@
 // --- 設定 & データ定義 ---
-const SAVE_KEY = 'english_quest_ultimate_v9_fix_endless'; 
-const OLD_KEYS = ['english_quest_ultimate_v8_fix', 'english_quest_ultimate_v7_safe'];
+const SAVE_KEY = 'english_quest_jhs1_v1'; // キーはそのまま
 
-// --- 称号データ ---
+// --- 称号データ (中1ver) ---
 const ACHIEVEMENTS = [
-    {id:'c1', name:'旅立ち', desc:'Stage 1 クリア', icon:'🌱'},
-    {id:'c2', name:'一歩前進', desc:'Stage 2 クリア', icon:'🚶'},
-    {id:'c3', name:'否定の理解', desc:'Stage 3 クリア', icon:'🙅'},
-    {id:'c4', name:'質問上手', desc:'Stage 4 クリア', icon:'❓'},
-    {id:'c5', name:'可能性', desc:'Stage 5 クリア', icon:'💪'},
-    {id:'c6', name:'探求者', desc:'Stage 6 クリア', icon:'🔍'},
-    {id:'c7', name:'指示役', desc:'Stage 7 クリア', icon:'👉'},
-    {id:'c8', name:'進行中', desc:'Stage 8 クリア', icon:'🏃'},
-    {id:'c9', name:'未来志向', desc:'Stage 9 クリア', icon:'🌈'},
-    {id:'c10', name:'歴史家', desc:'Stage 10 クリア', icon:'📜'},
-    {id:'c11', name:'基礎マスター', desc:'Final Quest クリア', icon:'🎓'},
-    {id:'c12', name:'真の英雄', desc:'EX Stage クリア', icon:'👑'},
+    {id:'c1', name:'Hello World', desc:'Stage 1 (be動詞) クリア', icon:'🥚'},
+    {id:'c2', name:'アクション開始', desc:'Stage 2 (一般動詞) クリア', icon:'🏃'},
+    {id:'c3', name:'Noと言える勇気', desc:'Stage 3 (否定文) クリア', icon:'🙅'},
+    {id:'c4', name:'クエスチョン', desc:'Stage 4 (疑問文) クリア', icon:'❓'},
+    {id:'c5', name:'可能性の扉', desc:'Stage 5 (can) クリア', icon:'🔓'},
+    {id:'c6', name:'探究者', desc:'Stage 6 (疑問詞) クリア', icon:'🔎'},
+    {id:'c7', name:'数と命令', desc:'Stage 7 (複数・命令) クリア', icon:'🔢'},
+    {id:'c8', name:'実況中継', desc:'Stage 8 (現在進行形) クリア', icon:'🎥'},
+    {id:'c9', name:'未来の夢', desc:'Stage 9 (不定詞) クリア', icon:'🌈'},
+    {id:'c10', name:'思い出', desc:'Stage 10 (過去形) クリア', icon:'🎞️'},
+    {id:'c11', name:'中1マスター', desc:'Final Review クリア', icon:'🎓'},
+    {id:'c12', name:'記述の神', desc:'EX Stage クリア', icon:'👑'},
     
     {id:'combo_10', name:'リズム', desc:'10コンボ達成', icon:'🎵'},
     {id:'combo_30', name:'フロー', desc:'30コンボ達成', icon:'🌊'},
@@ -38,8 +37,8 @@ const ACHIEVEMENTS = [
     {id:'level_5', name:'ルーキー', desc:'Lv.5 到達', icon:'⭐'},
     {id:'level_10', name:'ベテラン', desc:'Lv.10 到達', icon:'🌟'},
     {id:'level_20', name:'マスター', desc:'Lv.20 到達', icon:'🌌'},
-    {id:'end_10', name:'持久力', desc:'エンドレス10問到達', icon:'🔋'},
-    {id:'end_30', name:'無限の彼方', desc:'エンドレス30問到達', icon:'🚀'},
+    {id:'end_10', name:'持久力', desc:'エンドレス10問正解', icon:'🔋'},
+    {id:'end_30', name:'無限の彼方', desc:'エンドレス30問正解', icon:'🚀'},
 
     {id:'night_owl', name:'夜更かし', desc:'深夜(0-4時)にプレイ', icon:'🦉', hidden:true},
     {id:'lucky_7', name:'ラッキー7', desc:'スコアの末尾が77', icon:'🎰', hidden:true},
@@ -47,176 +46,242 @@ const ACHIEVEMENTS = [
 ];
 
 const STAGE_TITLES = {
-    1:"be動詞", 2:"一般動詞", 3:"否定文", 4:"疑問文", 5:"can",
-    6:"疑問詞", 7:"複数・命令", 8:"進行形", 9:"不定詞", 10:"過去形", 
-    11:"Final", 12:"EX:鬼の全文記述"
+    1:"be動詞", 2:"一般動詞", 3:"否定文", 4:"疑問文", 5:"助動詞 can",
+    6:"疑問詞", 7:"複数形・命令形", 8:"現在進行形", 9:"不定詞(名詞的用法)", 10:"過去形", 
+    11:"総復習 (Grade 1)", 12:"EX:鬼の全文記述(中1完結)"
 };
+
+// --- シャッフル関数 ---
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 
 // --- 問題データ生成 ---
 function getStageData(stageId) {
     let q = [];
+    // add(type, questionText, answer, options, explanation)
     const add = (type, qText, ans, opts, expl) => {
         q.push({ id: `${stageId}_${q.length}_${Date.now()}_${Math.random()}`, stage: stageId, type, q: qText, a: ans, o: opts, expl });
     };
 
-    // --- Stage 1: be動詞 ---
-    if (stageId === 1 || stageId >= 11) {
-        add('choice', 'I ( ) a student.', 'am', ['am','is','are','be'], 'I am ~');
-        add('choice', 'You ( ) very kind.', 'are', ['are','is','am','be'], 'You are ~');
-        add('choice', 'He ( ) my brother.', 'is', ['is','am','are','does'], 'He is ~');
-        add('choice', 'They ( ) busy now.', 'are', ['are','is','am','do'], 'They are ~');
-        add('sort', '私はトムです。', 'I am Tom', ['I','am','Tom'], 'I am Tom.');
-        add('sort', 'あなたは先生です。', 'You are a teacher', ['You','are','a','teacher'], 'You are a teacher.');
-        add('sort', '彼は私たちの先生です。', 'He is our teacher', ['He','is','our','teacher'], 'He is ~.');
-        add('fill', '私の母は医者です。 My mother ( ) a doctor.', 'is', null, 'My mother is ~.');
-        add('fill', '彼らは公園にいます。 They ( ) in the park.', 'are', null, 'They are ~.');
-        add('full', '私は学生です。', 'I am a student.', null, 'I am a student.');
-        add('full', 'これは本です。', 'This is a book.', null, 'This is a book.');
+    // --- Stage 1: be動詞 (am, are, is) ---
+    if (stageId === 1 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I ( ) a student.', 'am', ['am','are','is','do'], 'I am ~');
+        add('choice', 'You ( ) a teacher.', 'are', ['are','am','is','does'], 'You are ~');
+        add('choice', 'He ( ) my friend.', 'is', ['is','am','are','play'], 'He is ~');
+        add('choice', 'This ( ) a pen.', 'is', ['is','am','are','in'], 'This is ~');
+        add('sort', '私はケンです。', 'I am Ken', ['I','am','Ken'], 'I am [名前]');
+        add('sort', 'あなたは親切です。', 'You are kind', ['You','are','kind'], 'You are [形容詞]');
+        add('sort', 'あれは私の学校です。', 'That is my school', ['That','is','my','school'], 'That is ~');
+        add('fill', '私は日本出身です。 I ( ) from Japan.', 'am', null, 'I am from ~');
+        add('fill', '彼女は美しい。 She ( ) beautiful.', 'is', null, 'She is ~');
+        add('full', '私は東京出身です。', 'I am from Tokyo.', null, 'I am from [場所]');
+        add('full', 'これは私のカバンです。', 'This is my bag.', null, 'This is ~');
+        add('choice', 'My mother ( ) a doctor.', 'is', ['is','am','are','go'], '単数形 is');
+        add('sort', '元気ですか？', 'How are you', ['How','are','you'], '挨拶');
+        add('fill', 'それは素晴らしい。 It ( ) nice.', 'is', null, 'It is nice');
+        add('full', 'あなたは私の先生です。', 'You are my teacher.', null, 'You are ~');
     }
 
-    // --- Stage 2: 一般動詞 ---
-    if (stageId === 2 || stageId >= 11) {
-        add('choice', 'I ( ) tennis.', 'play', ['play','plays','playing','played'], 'I play ~');
-        add('choice', 'She ( ) soccer.', 'plays', ['plays','play','playing','played'], 'She plays ~');
-        add('choice', 'He ( ) music.', 'likes', ['likes','like','liking','liked'], 'He likes ~');
-        add('sort', '私は猫が好きです。', 'I like cats', ['I','like','cats'], 'I like cats.');
-        add('sort', '彼は東京に住んでいます。', 'He lives in Tokyo', ['He','lives','in','Tokyo'], 'He lives ~.');
-        add('fill', '私はあなたを知っています。 I ( ) you.', 'know', null, 'I know you.');
-        add('full', '私はテニスをします。', 'I play tennis.', null, 'I play tennis.');
-        add('full', '彼は夕食を作ります。', 'He cooks dinner.', null, 'He cooks dinner.');
+    // --- Stage 2: 一般動詞 (play, like, study など) ---
+    if (stageId === 2 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I ( ) tennis.', 'play', ['play','plays','playing','is'], 'I play ~');
+        add('choice', 'I ( ) music.', 'like', ['like','likes','liking','am'], 'I like ~');
+        add('choice', 'You ( ) English.', 'study', ['study','studies','studying','are'], 'You study ~');
+        add('sort', '私はサッカーをします。', 'I play soccer', ['I','play','soccer'], 'I play [スポーツ]');
+        add('sort', 'あなたは猫が好きです。', 'You like cats', ['You','like','cats'], 'You like ~');
+        add('sort', '私たちは学校へ行きます。', 'We go to school', ['We','go','to','school'], 'go to school');
+        add('fill', '私はギターを弾きます。 I ( ) the guitar.', 'play', null, 'play the [楽器]');
+        add('fill', '私は納豆が好きです。 I ( ) natto.', 'like', null, 'like [物]');
+        add('full', '私は毎日勉強します。', 'I study every day.', null, 'study every day');
+        add('full', '私は新しい自転車を持っています。', 'I have a new bike.', null, 'have (持っている)');
+        add('choice', 'He ( ) baseball.', 'plays', ['plays','play','playing','is'], '3単現のs');
+        add('choice', 'She ( ) Chinese.', 'speaks', ['speaks','speak','speaking','is'], '3単現のs');
+        add('sort', '彼は東京に住んでいます。', 'He lives in Tokyo', ['He','lives','in','Tokyo'], 'lives in');
+        add('fill', '彼女は夕食を作ります。 She ( ) dinner.', 'cooks', null, 'cooks (3単現)');
+        add('full', 'トムは速く走ります。', 'Tom runs fast.', null, 'runs (3単現)');
     }
 
-    // --- Stage 3: 否定文 ---
-    if (stageId === 3 || stageId >= 11) {
-        add('choice', 'I ( ) not hungry.', 'am', ['am','do','is','are'], 'be動詞(am)の否定');
-        add('choice', 'He ( ) not a teacher.', 'is', ['is','does','are','am'], 'be動詞(is)の否定');
-        add('choice', 'I ( ) like natto.', "don't", ["don't","doesn't","not","isn't"], '一般動詞(I)の否定');
-        add('choice', 'She ( ) speak English.', "doesn't", ["doesn't","don't","isn't","not"], '一般動詞(She)の否定');
-        add('sort', 'これはペンではありません。', 'This is not a pen', ['This','is','not','a','pen'], 'This is not ~.');
-        add('sort', '私は泳ぎません。', 'I do not swim', ['I','do','not','swim'], 'I do not ~.');
-        add('fill', '私たちは忙しくありません。 We ( ) not busy.', 'are', null, 'We are not ~.');
-        add('fill', 'ケンはテニスをしません。 Ken ( ) not play tennis.', 'does', null, 'Ken does not ~.');
-        add('full', '私はその本を持っていません。', "I don't have the book.", null, "I don't have ~.");
-        add('full', '彼女は走りません。', "She doesn't run.", null, "She doesn't run.");
+    // --- Stage 3: 否定文 (be動詞 & 一般動詞) ---
+    if (stageId === 3 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I ( ) not a student.', 'am', ['am','do','are','is'], 'be動詞の否定');
+        add('choice', 'You ( ) not busy.', 'are', ['are','do','am','is'], 'You are not');
+        add('choice', 'I ( ) play soccer.', "don't", ["don't","not","am not","doesn't"], '一般動詞の否定 I don\'t');
+        add('choice', 'He ( ) not like dogs.', 'does', ['does','do','is','are'], '3単現の否定 doesn\'t');
+        add('sort', '私は先生ではありません。', 'I am not a teacher', ['I','am','not','a','teacher'], 'I am not ~');
+        add('sort', 'これはペンではありません。', 'This is not a pen', ['This','is','not','a','pen'], 'This is not ~');
+        add('sort', '私はピアノを弾きません。', 'I do not play the piano', ['I','do','not','play','the','piano'], 'I do not ~');
+        add('fill', '彼女はトムを知りません。 She ( ) not know Tom.', 'does', null, 'She does not');
+        add('fill', '私はその本を持っていません。 I ( ) have the book.', "don't", null, "don't have");
+        add('full', '私はオーストラリア出身ではありません。', 'I am not from Australia.', null, 'am not from');
+        add('full', '彼は英語を話しません。', "He doesn't speak English.", null, "doesn't speak");
+        add('choice', 'They ( ) my friends.', "aren't", ["aren't","isn't","don't","doesn't"], 'be動詞短縮');
+        add('sort', '私たちは魚を食べません。', "We don't eat fish", ['We',"don't",'eat','fish'], 'We don\'t ~');
+        add('fill', 'それは私の犬ではありません。 It ( ) not my dog.', 'is', null, 'It is not');
+        add('full', '私は野球が好きではありません。', "I don't like baseball.", null, "don't like");
     }
 
-    // --- Stage 4: 疑問文 ---
-    if (stageId === 4 || stageId >= 11) {
-        add('choice', '( ) you happy?', 'Are', ['Are','Do','Is','Does'], 'happy(形容詞) -> Are');
-        add('choice', '( ) you play soccer?', 'Do', ['Do','Are','Is','Does'], 'play(動詞) -> Do');
-        add('choice', '( ) he a student?', 'Is', ['Is','Does','Are','Do'], 'student(名詞) -> Is');
-        add('choice', '( ) she like music?', 'Does', ['Does','Is','Do','Are'], 'like(動詞/3単) -> Does');
-        add('sort', 'あなたは学生ですか？', 'Are you a student', ['Are','you','a','student'], 'Are you ~?');
-        add('sort', 'あなたはコーヒーが好きですか？', 'Do you like coffee', ['Do','you','like','coffee'], 'Do you ~?');
-        add('fill', 'これはあなたの本ですか？ ( ) this your book?', 'Is', null, 'Is this ~?');
-        add('fill', '彼らはここに住んでいますか？ ( ) they live here?', 'Do', null, 'Do they ~?');
-        add('full', 'あなたは元気ですか？', 'Are you fine?', null, 'Are you fine?');
-        add('full', 'あなたはテニスをしますか？', 'Do you play tennis?', null, 'Do you play tennis?');
+    // --- Stage 4: 疑問文 (be動詞・一般動詞) ---
+    if (stageId === 4 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', '( ) you a student?', 'Are', ['Are','Do','Is','Am'], 'Are you ~?');
+        add('choice', '( ) this your bag?', 'Is', ['Is','Does','Are','Do'], 'Is this ~?');
+        add('choice', '( ) you like sports?', 'Do', ['Do','Are','Does','Is'], 'Do you like ~?');
+        add('choice', '( ) he play tennis?', 'Does', ['Does','Do','Is','Are'], 'Does he ~?');
+        add('sort', 'あなたは東京出身ですか？', 'Are you from Tokyo', ['Are','you','from','Tokyo'], 'Are you from ~?');
+        add('sort', 'あなたは寿司が好きですか？', 'Do you like sushi', ['Do','you','like','sushi'], 'Do you like ~?');
+        add('sort', '彼女は日本語を話しますか？', 'Does she speak Japanese', ['Does','she','speak','Japanese'], 'Does she ~?');
+        add('fill', 'ケンは忙しいですか？ ( ) Ken busy?', 'Is', null, 'Is Ken ~?');
+        add('fill', 'あなたはピアノを持っていますか？ ( ) you have a piano?', 'Do', null, 'Do you have ~?');
+        add('full', 'あなたは先生ですか？', 'Are you a teacher?', null, 'Are you ~?');
+        add('full', 'あなたは毎日勉強しますか？', 'Do you study every day?', null, 'Do you study ~?');
+        add('choice', 'Yes, I ( ).', 'do', ['do','am','are','does'], 'Do you...? の答え');
+        add('choice', 'No, he ( ).', "doesn't", ["doesn't","don't","isn't","aren't"], 'Does he...? の答え');
+        add('sort', 'あれはあなたの車ですか？', 'Is that your car', ['Is','that','your','car'], 'Is that ~?');
+        add('full', '彼は納豆を食べますか？', 'Does he eat natto?', null, 'Does he eat ~?');
     }
 
-    // --- Stage 5: can ---
-    if (stageId === 5 || stageId >= 11) {
-        add('choice', 'I ( ) swim.', 'can', ['can','cans','am','does'], 'can + 原形');
-        add('choice', 'He ( ) run fast.', 'can', ['can','is','does','has'], '主語が変わってもcan');
-        add('choice', 'Can you ( ) the guitar?', 'play', ['play','plays','playing','played'], 'canの後ろは原形');
-        add('sort', '私はスキーができます。', 'I can ski', ['I','can','ski'], 'I can ~.');
-        add('sort', 'ドアを開けてくれませんか？', 'Can you open the door', ['Can','you','open','the','door'], '依頼の Can you ~?');
-        add('fill', '私たちは英語を話せます。 We ( ) speak English.', 'can', null, 'We can ~.');
-        add('fill', '私は速く走れません。 I ( ) not run fast.', 'cannot', null, 'cannot (can\'t)');
-        add('full', '私は泳げます。', 'I can swim.', null, 'I can swim.');
-        add('full', 'いいですよ。', 'Yes, I can.', null, 'Yes, I can.');
+    // --- Stage 5: can (助動詞) ---
+    if (stageId === 5 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I ( ) swim.', 'can', ['can','cans','canning','to can'], 'I can ~');
+        add('choice', 'He can ( ) the piano.', 'play', ['play','plays','playing','to play'], 'can + 原形');
+        add('choice', 'Can you ( ) English?', 'speak', ['speak','speaks','speaking','spoke'], 'Can you + 原形');
+        add('choice', 'I ( ) run fast.', "cannot", ["cannot","isn't","don't","not can"], 'cannot (できない)');
+        add('sort', '私はスキーができます。', 'I can ski', ['I','can','ski'], 'I can [動作]');
+        add('sort', 'あなたは料理ができますか？', 'Can you cook', ['Can','you','cook'], 'Can you ~?');
+        add('sort', '彼は速く走れません。', "He can't run fast", ['He',"can't",'run','fast'], 'cannot / can\'t');
+        add('fill', '手伝ってくれますか？ ( ) you help me?', 'Can', null, 'Can you ~? (依頼)');
+        add('fill', '私は泳げません。 I ( ) swim.', "can't", null, "can't");
+        add('full', '私は上手に歌えます。', 'I can sing well.', null, 'sing well');
+        add('full', '私の父は運転できます。', 'My father can drive.', null, 'can drive');
+        add('choice', 'Yes, I ( ).', 'can', ['can','do','am','will'], 'Can you...? の答え');
+        add('sort', 'ここでテニスができますか？', 'Can I play tennis here', ['Can','I','play','tennis','here'], 'Can I ~? (許可)');
+        add('fill', 'ドアを開けてくれませんか？ ( ) you open the door?', 'Can', null, 'Can you ~?');
+        add('full', 'あなたは漢字が読めますか？', 'Can you read Kanji?', null, 'read Kanji');
     }
 
-    // --- Stage 6: 疑問詞 ---
-    if (stageId === 6 || stageId >= 11) {
-        add('choice', '( ) is this?', 'What', ['What','Who','Where','When'], '何 -> What');
-        add('choice', '( ) is that boy?', 'Who', ['Who','Which','Where','When'], '誰 -> Who');
-        add('choice', '( ) do you live?', 'Where', ['Where','What','Who','When'], 'どこ -> Where');
-        add('choice', '( ) is your birthday?', 'When', ['When','Where','Who','What'], 'いつ -> When');
-        add('sort', 'あれは何ですか？', 'What is that', ['What','is','that'], 'What is ~?');
-        add('sort', 'あなたは誰ですか？', 'Who are you', ['Who','are','you'], 'Who are ~?');
-        add('fill', '何時ですか？ ( ) time is it?', 'What', null, 'What time');
-        add('fill', 'どんなスポーツが好きですか？ ( ) sport do you like?', 'What', null, 'What sport');
-        add('full', 'これは何ですか？', 'What is this?', null, 'What is this?');
-        add('full', 'あなたはどこに住んでいますか？', 'Where do you live?', null, 'Where do you live?');
+    // --- Stage 6: 疑問詞 (What, Who, Where, When, How) ---
+    if (stageId === 6 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', '( ) is this?', 'What', ['What','Who','Where','How'], 'What is this?');
+        add('choice', '( ) is that boy?', 'Who', ['Who','What','Where','When'], 'Who is ~?');
+        add('choice', '( ) do you live?', 'Where', ['Where','Who','What','When'], 'Where do you live?');
+        add('choice', '( ) is your birthday?', 'When', ['When','Where','Who','What'], 'When is ~?');
+        add('sort', 'これは何ですか？', 'What is this', ['What','is','this'], 'What is this?');
+        add('sort', 'あの女性は誰ですか？', 'Who is that woman', ['Who','is','that','woman'], 'Who is ~?');
+        add('sort', 'あなたはどうやって学校へ来ますか？', 'How do you come to school', ['How','do','you','come','to','school'], 'How do you ~?');
+        add('fill', '時刻は今何時ですか？ ( ) time is it now?', 'What', null, 'What time ~?');
+        add('fill', '出身はどこですか？ ( ) are you from?', 'Where', null, 'Where are you from?');
+        add('full', 'トイレはどこですか？', 'Where is the bathroom?', null, 'Where is ~?');
+        add('full', 'あなたの誕生日はいつですか？', 'When is your birthday?', null, 'When is ~?');
+        add('choice', '( ) day is it today?', 'What', ['What','Who','How','Where'], 'What day (何曜日)');
+        add('choice', '( ) old are you?', 'How', ['How','Who','What','When'], 'How old (何歳)');
+        add('sort', '今日の天気はどうですか？', 'How is the weather today', ['How','is','the','weather','today'], 'How is the weather');
+        add('full', 'あなたの名前は何ですか？', 'What is your name?', null, 'What is your name?');
     }
 
     // --- Stage 7: 複数形・命令形 ---
-    if (stageId === 7 || stageId >= 11) {
-        add('choice', 'I have two ( ).', 'dogs', ['dogs','dog',"dog's",'doges'], '2匹 -> 複数形');
-        add('choice', '( ) the door.', 'Open', ['Open','Opens','Opening','To open'], '命令形は原形');
-        add('choice', "Let's ( ) soccer.", 'play', ['play','plays','playing','played'], "Let's + 原形");
-        add('sort', 'この本を読みなさい。', 'Read this book', ['Read','this','book'], 'Read ~.');
-        add('sort', '走ってはいけません。', 'Do not run', ['Do','not','run'], '禁止 Don\'t ~.');
-        add('fill', '私は多くの本を持っています。 I have many ( ).', 'books', null, 'many books');
-        add('fill', '注意しなさい。 Be ( ).', 'careful', null, 'Be careful.');
-        add('full', 'ここで止まりなさい。', 'Stop here.', null, 'Stop here.');
-        add('full', '英語を勉強しましょう。', "Let's study English.", null, "Let's study English.");
+    if (stageId === 7 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I have two ( ).', 'dogs', ['dogs','dog','doges','dogss'], '複数形 s');
+        add('choice', 'I have three ( ).', 'boxes', ['boxes','boxs','box','boxxes'], '複数形 es');
+        add('choice', '( ) your book.', 'Open', ['Open','Opens','Opening','To open'], '命令形(原形)');
+        add('choice', '( ) swim here.', "Don't", ["Don't","Not","No","Doesn't"], '禁止の命令 Don\'t');
+        add('sort', '私は2人の姉妹がいます。', 'I have two sisters', ['I','have','two','sisters'], 'two sisters');
+        add('sort', '座ってください。', 'Sit down please', ['Sit','down','please'], 'Sit down');
+        add('sort', 'この部屋に入ってはいけません。', "Don't enter this room", ["Don't",'enter','this','room'], 'Don\'t enter');
+        add('fill', '静かにしなさい。 Be ( ).', 'quiet', null, 'Be quiet.');
+        add('fill', '窓を開けましょう。 ( ) open the window.', "Let's", null, "Let's ~");
+        add('full', '私はたくさんの本を持っています。', 'I have many books.', null, 'many books');
+        add('full', 'ドアを閉めてください。', 'Close the door, please.', null, 'Close the door');
+        add('choice', 'Do you have any ( )?', 'pets', ['pets','pet','a pet','pettes'], 'any pets');
+        add('sort', 'さあ、行きましょう。', "Let's go", ["Let's",'go'], "Let's go");
+        add('fill', '私の父は2台の車を持っています。 My father has two ( ).', 'cars', null, 'two cars');
+        add('full', 'ここで写真を撮ってはいけません。', "Don't take pictures here.", null, "Don't take pictures");
     }
 
-    // --- Stage 8: 進行形 ---
-    if (stageId === 8 || stageId >= 11) {
-        add('choice', 'I am ( ) English.', 'studying', ['studying','study','studies','studied'], 'am + ing');
-        add('choice', 'He is ( ) lunch.', 'eating', ['eating','eat','ate','eats'], 'is + ing');
-        add('choice', 'They are ( ) now.', 'running', ['running','run','runs','runing'], 'running (n重ねる)');
-        add('sort', '彼女は本を読んでいます。', 'She is reading a book', ['She','is','reading','a','book'], 'She is reading');
-        add('sort', 'あなたは今何をしていますか？', 'What are you doing now', ['What','are','you','doing','now'], 'What are you doing');
-        add('fill', '私は音楽を聴いています。 I am ( ) to music.', 'listening', null, 'listening');
-        add('fill', 'ケンは泳いでいます。 Ken is ( ).', 'swimming', null, 'swimming');
-        add('full', '彼は寝ています。', 'He is sleeping.', null, 'He is sleeping.');
-        add('full', '私たちは歌っています。', 'We are singing.', null, 'We are singing.');
+    // --- Stage 8: 現在進行形 (be + ing) ---
+    if (stageId === 8 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I am ( ) English.', 'studying', ['studying','study','studies','studied'], 'am studying');
+        add('choice', 'He is ( ) tennis.', 'playing', ['playing','play','plays','played'], 'is playing');
+        add('choice', 'They are ( ).', 'running', ['running','runing','runs','run'], 'running (n重ねる)');
+        add('choice', 'Are you ( ) lunch?', 'eating', ['eating','eat','eats','ate'], 'Are you eating?');
+        add('sort', '私は本を読んでいます。', 'I am reading a book', ['I','am','reading','a','book'], 'am reading');
+        add('sort', '彼は今、眠っています。', 'He is sleeping now', ['He','is','sleeping','now'], 'is sleeping');
+        add('sort', '彼女は泳いでいますか？', 'Is she swimming', ['Is','she','swimming'], 'Is she swimming?');
+        add('fill', '彼らは歌っています。 They are ( ).', 'singing', null, 'are singing');
+        add('fill', 'あなたは何をしていますか？ What are you ( )?', 'doing', null, 'What are you doing?');
+        add('full', '私はテレビを見ています。', 'I am watching TV.', null, 'am watching');
+        add('full', 'トムは勉強していません。', "Tom isn't studying.", null, "isn't studying");
+        add('choice', 'Look. The bus is ( ).', 'coming', ['coming','comeing','comes','came'], 'coming (eをとる)');
+        add('sort', '私は手紙を書いています。', 'I am writing a letter', ['I','am','writing','a','letter'], 'writing (eをとる)');
+        add('fill', 'ケンは走っていますか？ Is Ken ( )?', 'running', null, 'running');
+        add('full', '母は料理をしています。', 'My mother is cooking.', null, 'is cooking');
     }
 
-    // --- Stage 9: 不定詞 ---
-    if (stageId === 9 || stageId >= 11) {
-        add('choice', 'I want ( ) a teacher.', 'to be', ['to be','be','being','been'], 'want to be');
-        add('choice', 'I like ( ) tennis.', 'to play', ['to play','play','played','plays'], 'like to play');
-        add('choice', 'I go to the park ( ) soccer.', 'to play', ['to play','play','for play','playing'], 'to play (〜するために)');
-        add('sort', '私はアメリカに行きたいです。', 'I want to go to America', ['I','want','to','go','to','America'], 'want to go');
-        add('sort', '私の夢は歌手になることです。', 'My dream is to be a singer', ['My','dream','is','to','be','a','singer'], 'to be ~');
-        add('fill', '私は本を読むのが好きです。 I like ( ) read books.', 'to', null, 'like to read');
-        add('fill', '彼に会えてうれしいです。 I am happy ( ) see him.', 'to', null, 'to see');
-        add('full', '私は医者になりたいです。', 'I want to be a doctor.', null, 'I want to be a doctor.');
-        add('full', '彼女はテニスをするのが好きです。', 'She likes to play tennis.', null, 'She likes to play tennis.');
+    // --- Stage 9: 不定詞 (名詞的用法 want to / like to / try to) ---
+    if (stageId === 9 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I want ( ) play soccer.', 'to', ['to','for','at','of'], 'want to ~');
+        add('choice', 'I like ( ) swim.', 'to', ['to','for','in','at'], 'like to ~');
+        add('choice', 'I want to ( ) a teacher.', 'be', ['be','am','is','are'], 'want to be (なりたい)');
+        add('choice', 'He wants to ( ) to the park.', 'go', ['go','goes','going','went'], 'to + 原形');
+        add('sort', '私はテニスがしたいです。', 'I want to play tennis', ['I','want','to','play','tennis'], 'want to play');
+        add('sort', '私は本を読むのが好きです。', 'I like to read books', ['I','like','to','read','books'], 'like to read');
+        add('sort', '彼は医者になりたいです。', 'He wants to be a doctor', ['He','wants','to','be','a','doctor'], 'wants to be');
+        add('fill', '私は英語を勉強したいです。 I want ( ) study English.', 'to', null, 'want to');
+        add('fill', '彼女は歌うのが好きです。 She likes ( ) sing.', 'to', null, 'likes to');
+        add('full', '私は野球がしたいです。', 'I want to play baseball.', null, 'want to play');
+        add('full', 'あなたは何になりたいですか？', 'What do you want to be?', null, 'What do you want to be?');
+        add('choice', 'I tried ( ) open the door.', 'to', ['to','for','at','on'], 'try to (～しようとする)');
+        add('sort', '私は日本を訪れたいです。', 'I want to visit Japan', ['I','want','to','visit','Japan'], 'want to visit');
+        add('fill', '私は家に帰りたい。 I want to ( ) home.', 'go', null, 'go home');
+        add('full', '私はその本を読みたいです。', 'I want to read the book.', null, 'want to read');
     }
 
-    // --- Stage 10: 過去形 ---
-    if (stageId === 10 || stageId >= 11) {
-        add('choice', 'I ( ) tennis yesterday.', 'played', ['played','play','plays','playing'], 'yesterday -> played');
-        add('choice', 'He ( ) to the park.', 'went', ['went','go','goes','going'], 'go -> went');
-        add('choice', 'I ( ) busy last night.', 'was', ['was','is','am','were'], 'last night -> was');
-        add('sort', '私は新しい車を買いました。', 'I bought a new car', ['I','bought','a','new','car'], 'buy -> bought');
-        add('sort', '彼は昨日ここに来ました。', 'He came here yesterday', ['He','came','here','yesterday'], 'come -> came');
-        add('fill', '私は彼を見ました。 I ( ) him.', 'saw', null, 'see -> saw');
-        add('fill', '私は昨日勉強しませんでした。 I ( ) not study yesterday.', 'did', null, 'did not');
-        add('full', '彼は6時に起きました。', 'He got up at six.', null, 'get -> got');
-        add('full', 'あなたはどこへ行きましたか？', 'Where did you go?', null, 'Where did you go?');
+    // --- Stage 10: 過去形 (was/were, 規則動詞, 不規則動詞) ---
+    if (stageId === 10 || (stageId >= 11 && stageId !== 12)) {
+        add('choice', 'I ( ) busy yesterday.', 'was', ['was','am','were','is'], 'I was (be過去)');
+        add('choice', 'You ( ) happy last night.', 'were', ['were','was','are','did'], 'You were (be過去)');
+        add('choice', 'I ( ) tennis yesterday.', 'played', ['played','play','plays','playing'], 'play -> played');
+        add('choice', 'I ( ) to Tokyo last Sunday.', 'went', ['went','go','goes','going'], 'go -> went');
+        add('sort', '私は昨日、公園にいました。', 'I was in the park yesterday', ['I','was','in','the','park','yesterday'], 'I was in ~');
+        add('sort', '私は昨夜、テレビを見ました。', 'I watched TV last night', ['I','watched','TV','last','night'], 'watched');
+        add('sort', '彼は昨日、英語を勉強しましたか？', 'Did he study English yesterday', ['Did','he','study','English','yesterday'], 'Did he study ~?');
+        add('fill', '私は昨日、宿題をしました。 I ( ) my homework yesterday.', 'did', null, 'did (doの過去)');
+        add('fill', '私は彼に会いました。 I ( ) him.', 'saw', null, 'saw (seeの過去)');
+        add('full', '私は昨夜、忙しくありませんでした。', "I wasn't busy last night.", null, "wasn't busy");
+        add('full', 'あなたは昨日何をしましたか？', 'What did you do yesterday?', null, 'What did you do');
+        add('choice', 'He ( ) come yesterday.', "didn't", ["didn't","don't","doesn't","isn't"], 'didn\'t (過去否定)');
+        add('sort', '私たちは昨日、楽しい時間を過ごしました。', 'We had a good time yesterday', ['We','had','a','good','time','yesterday'], 'had a good time');
+        add('fill', '彼らは昨夜、家にいました。 They ( ) at home last night.', 'were', null, 'were');
+        add('full', '私は今朝、6時に起きました。', 'I got up at six this morning.', null, 'got up');
     }
 
-    // --- Stage 12: EX (超難問) ---
+    // --- Stage 12: EX (中1総まとめ全文記述) ---
     if (stageId === 12) {
-        add('full', '私は日曜日にはサッカーをしません。', 'I do not play soccer on Sundays.', null, '習慣(Sundayにs)、do not');
-        add('full', '私の父は毎日新しい車を洗います。', 'My father washes his new car every day.', null, 'wash -> washes, his car');
-        add('full', 'あなたは放課後、図書館で勉強しますか？', 'Do you study at the library after school?', null, '場所 + 時');
-        add('full', '彼女はとても上手にピアノを弾くことができます。', 'She can play the piano very well.', null, 'can play, very well');
-        add('full', '公園で走っているあの少年は誰ですか？', 'Who is that boy running in the park?', null, 'Who is ~, running in the park');
-        add('full', '机の上に本が何冊ありますか？', 'How many books are there on the desk?', null, 'How many ~ are there');
-        add('full', '私は朝食を食べずに学校へ行きました。', 'I went to school without breakfast.', null, 'without ~ (〜なしで)');
-        add('full', '昨夜、あなたはどこにいましたか？', 'Where were you last night?', null, 'Where were you');
-        add('full', 'ケンはその時、自分の部屋で本を読んでいました。', 'Ken was reading a book in his room then.', null, 'was reading');
-        add('full', '私にあなたの写真を見せてください。', 'Please show me your picture.', null, 'show me ~');
-        add('full', 'オーストラリアでは何語が話されていますか？', 'What language is spoken in Australia?', null, 'is spoken (受動態)');
-        add('full', '私はその映画を見たことがありません。', 'I have never seen the movie.', null, 'have never seen (現在完了)');
-        add('full', 'どちらがあなたのペンですか、これですか、それともあれですか？', 'Which is your pen, this or that?', null, 'Which is ~, A or B?');
-        add('full', '彼女は医者になりたがっています。', 'She wants to be a doctor.', null, 'wants to be');
-        add('full', '彼らはそのニュースを知りませんでした。', "They didn't know the news.", null, "didn't know");
+        add('full', '私は音楽が好きではありません。', "I don't like music.", null, '一般動詞否定');
+        add('full', 'あなたはどこに住んでいますか？', 'Where do you live?', null, '疑問詞 Where');
+        add('full', '彼は泳ぐことができますか？', 'Can he swim?', null, '助動詞 Can');
+        add('full', 'ドアを開けてください。', 'Open the door, please.', null, '命令形');
+        add('full', '私は今、英語を勉強しています。', 'I am studying English now.', null, '現在進行形');
+        add('full', '彼女は先生になりたいです。', 'She wants to be a teacher.', null, '不定詞 want to be');
+        add('full', '私は昨日、図書館に行きました。', 'I went to the library yesterday.', null, '過去形 went');
+        add('full', '昨日は晴れでした。', 'It was sunny yesterday.', null, '過去形 It was');
+        add('full', 'あなたは何個のボールを持っていますか？', 'How many balls do you have?', null, 'How many ~?');
+        add('full', '彼らは公園で走っています。', 'They are running in the park.', null, '進行形 running');
+        add('full', '日曜日には何をしますか？', 'What do you do on Sunday?', null, 'What do you do');
+        add('full', 'そのカバンを買ってはいけません。', "Don't buy the bag.", null, '禁止 Don\'t');
+        add('full', '私はその時、お腹が空いていました。', 'I was hungry then.', null, '過去形 I was');
+        add('full', '彼女は日本語を話しません。', "She doesn't speak Japanese.", null, '3単現否定');
+        add('full', 'これは誰の自転車ですか？', 'Whose bike is this?', null, 'Whose ~?');
         return q;
     }
 
     return q;
 }
 
-// --- ゲーム変数 ---
+// --- ゲーム変数 (HPを5に変更) ---
 let gameState = {
     mode: '', 
     stageId: 1,
@@ -225,11 +290,12 @@ let gameState = {
     score: 0,
     combo: 0,
     mistakes: [],
-    hp: 3,
-    maxHp: 3,
+    hp: 5, // ここを5に変更
+    maxHp: 5, // ここを5に変更
     expGained: 0,
     goldGained: 0,
     endlessWave: 0,
+    endlessCorrectCount: 0, 
     writeCorrectCount: 0,
     shieldActive: false,
     pencilUsed: false,
@@ -240,33 +306,7 @@ let gameState = {
 // --- セーブデータ管理 ---
 function loadGameData() {
     let data = localStorage.getItem(SAVE_KEY);
-    if (!data) {
-        // 過去のデータがあれば移行
-        for (let oldKey of OLD_KEYS) {
-            let oldData = localStorage.getItem(oldKey);
-            if (oldData) {
-                try {
-                    let oldParsed = JSON.parse(oldData);
-                    let newData = {
-                        cleared: oldParsed.cleared || [],
-                        achieved: oldParsed.achieved || [],
-                        level: oldParsed.level || 1,
-                        exp: oldParsed.exp || 0,
-                        gold: oldParsed.gold || 0,
-                        items: oldParsed.items || { potion: 0, bomb: 0, hint: 0, pencil: 0, shield: 0, coin: 0 },
-                        totalSolved: oldParsed.totalSolved || 0,
-                        writeCount: oldParsed.writeCount || 0
-                    };
-                    data = JSON.stringify(newData);
-                    localStorage.setItem(SAVE_KEY, data);
-                } catch(e) { console.error(e); }
-                break;
-            }
-        }
-    }
-    
     let parsed = data ? JSON.parse(data) : {};
-    
     return {
         cleared: parsed.cleared || [],
         achieved: parsed.achieved || [],
@@ -282,7 +322,8 @@ function loadGameData() {
             coin: (parsed.items && parsed.items.coin) || 0
         },
         totalSolved: parsed.totalSolved || 0,
-        writeCount: parsed.writeCount || 0
+        writeCount: parsed.writeCount || 0,
+        maxEndlessScore: parsed.maxEndlessScore || 0 
     };
 }
 let saveData = loadGameData();
@@ -316,6 +357,10 @@ function updateTitleStats() {
     document.getElementById('title-next-exp').innerText = nextExp - saveData.exp;
     const pct = Math.min(100, (saveData.exp / nextExp) * 100);
     document.getElementById('title-exp-bar').style.width = `${pct}%`;
+    
+    // エンドレス最大記録の表示
+    const recEl = document.getElementById('endless-record-display');
+    if(recEl) recEl.innerText = `Endless Best: ${saveData.maxEndlessScore} 問`;
 }
 
 function updateStageList() {
@@ -339,17 +384,21 @@ function updateStageList() {
         list.appendChild(btn);
     }
     
-    // --- エンドレスモード解放処理 (Stage 11 クリアで解放) ---
+    // エンドレスモード解放処理
     const endBtn = document.getElementById('btn-endless');
+    const recEl = document.getElementById('endless-record-display');
+    
     if(saveData.cleared.includes(11)) { 
         endBtn.classList.remove('locked');
-        endBtn.classList.remove('hidden'); // 解放されたら表示
+        endBtn.classList.remove('hidden');
         endBtn.innerText = "♾️ エンドレスモード";
         endBtn.disabled = false;
+        if(recEl) recEl.classList.remove('hidden'); 
     } else {
         endBtn.classList.add('locked');
-        endBtn.classList.add('hidden'); // まだなら隠す
+        endBtn.classList.add('hidden');
         endBtn.disabled = true;
+        if(recEl) recEl.classList.add('hidden'); 
     }
     
     const goldEl = document.getElementById('stage-gold');
@@ -534,14 +583,17 @@ function useCoin() {
 
 function initGame(mode) {
     gameState.mode = mode;
+    gameState.queue = []; 
     gameState.score = 0;
     gameState.combo = 0;
     gameState.qIndex = 0;
     gameState.mistakes = [];
-    gameState.hp = 3;
+    gameState.hp = 5; // 初期HPを5に設定
+    gameState.maxHp = 5; // 最大HPを5に設定
     gameState.expGained = 0;
     gameState.goldGained = 0;
     gameState.endlessWave = 1;
+    gameState.endlessCorrectCount = 0; 
     gameState.writeCorrectCount = 0;
     gameState.shieldActive = false;
     gameState.pencilUsed = false;
@@ -549,7 +601,17 @@ function initGame(mode) {
     updateHpBar();
     showScreen('screen-game');
     updateItemButtons();
-    document.getElementById('screen-game').classList.remove('boss-mode');
+    
+    // 赤色バグ修正
+    const qArea = document.getElementById('question-area');
+    if(qArea) {
+        qArea.classList.remove('anim-wrong');    
+        qArea.classList.remove('anim-correct'); 
+        qArea.style.borderColor = "#dfe6e9";     
+    }
+
+    const gameScreen = document.getElementById('screen-game');
+    gameScreen.classList.remove('boss-mode');
     document.getElementById('boss-overlay').classList.add('hidden');
     document.getElementById('shield-overlay').classList.add('hidden');
     document.getElementById('coin-overlay').classList.add('hidden');
@@ -562,7 +624,7 @@ function startStage(id) {
     let pool = [];
     if(id === 12) {
         pool = getStageData(12);
-        gameState.queue = pool.sort(() => Math.random() - 0.5).slice(0, 10);
+        gameState.queue = pool.sort(() => Math.random() - 0.5).slice(0, 15);
     } else {
         let pool = (id === 11) ? [] : getStageData(id);
         if(id === 11) for(let i=1; i<=10; i++) pool = pool.concat(getStageData(i));
@@ -592,32 +654,31 @@ function startStage(id) {
 function startEndless() {
     initGame('endless');
     addEndlessQuestions();
-    document.getElementById('q-category').innerText = "Endless Wave 1";
     showQuestion();
 }
 
 function addEndlessQuestions() {
-    // Stage 1〜11 からランダム（EX除く）
     let pool = [];
-    for(let i=1; i<=11; i++) pool = pool.concat(getStageData(i));
-    gameState.queue = gameState.queue.concat(pool.sort(() => Math.random() - 0.5).slice(0, 10));
+    // Stage 12 (EX) を除く 1〜11 から出題
+    for(let i=1; i<=11; i++) {
+        pool = pool.concat(getStageData(i));
+    }
+    pool = shuffleArray(pool);
+    gameState.queue = gameState.queue.concat(pool.slice(0, 10));
 }
 
 // --- 問題表示 ---
 function showQuestion() {
-    // 修正: エンドレスモードの次ウェーブ判定ロジック
-    // 問題プールを使い果たした場合にモーダルを表示
     if (gameState.mode === 'endless' && gameState.qIndex >= gameState.queue.length) {
         showEndlessModal();
         return;
     }
-    // ステージクリア判定
     if (gameState.qIndex >= gameState.queue.length) {
         finishGame(true);
         return;
     }
 
-    const isBoss = (gameState.mode === 'stage' && gameState.qIndex === 9);
+    const isBoss = (gameState.mode === 'stage' && gameState.qIndex === gameState.queue.length - 1);
     const gameScreen = document.getElementById('screen-game');
     const bossOverlay = document.getElementById('boss-overlay');
     
@@ -634,7 +695,13 @@ function showQuestion() {
     document.getElementById('q-text').innerText = q.q;
     document.getElementById('q-type-badge').innerText = getTypeLabel(q.type);
 
-    const total = gameState.mode === 'stage' ? 10 : gameState.queue.length;
+    if (gameState.mode === 'endless') {
+        document.getElementById('q-category').innerText = `正解数: ${gameState.endlessCorrectCount} (Best: ${saveData.maxEndlessScore})`;
+    } else {
+        document.getElementById('q-category').innerText = `Stage ${gameState.stageId}`;
+    }
+
+    const total = gameState.queue.length;
     const pct = ((gameState.qIndex) / total) * 100;
     document.getElementById('progress-fill').style.width = `${pct}%`;
 
@@ -649,7 +716,7 @@ function showQuestion() {
         const c = document.getElementById('choices-container');
         c.classList.remove('hidden');
         c.innerHTML = '';
-        let opts = [...q.o].sort(() => Math.random() - 0.5);
+        let opts = shuffleArray([...q.o]);
         opts.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
@@ -661,7 +728,7 @@ function showQuestion() {
         const c = document.getElementById('sort-container');
         c.classList.remove('hidden');
         gameState.sortAns = [];
-        gameState.shuffledSortOptions = [...q.o].sort(() => Math.random() - 0.5);
+        gameState.shuffledSortOptions = shuffleArray([...q.o]);
         renderSortUI(q);
     } else {
         const c = document.getElementById('writing-container');
@@ -685,32 +752,42 @@ function getTypeLabel(t) {
 
 function normalizeText(text) {
     let t = text.toLowerCase().trim();
-    t = t.replace(/[.?!,]/g, '');
-    t = t.replace(/\s+/g, ' ');
+    t = t.replace(/[.?!,]/g, ''); 
+    t = t.replace(/\s+/g, ' ');    
     const maps = {
         "don't": "do not", "doesn't": "does not", "didn't": "did not",
-        "can't": "cannot", "isn't": "is not", "aren't": "are not",
-        "wasn't": "was not", "weren't": "were not",
+        "can't": "cannot", "won't": "will not", "isn't": "is not", "aren't": "are not",
+        "wasn't": "was not", "weren't": "were not", "shouldn't": "should not", "mustn't": "must not",
         "i'm": "i am", "you're": "you are", "he's": "he is", "she's": "she is",
-        "we're": "we are", "they're": "they are", "it's": "it is"
+        "we're": "we are", "they're": "they are", "it's": "it is", "that's": "that is",
+        "let's": "let us"
     };
     for (let key in maps) {
-        t = t.replace(new RegExp(key, 'g'), maps[key]);
+        const regex = new RegExp(`\\b${key.replace("'", "")}\\b`, 'g'); 
+        t = t.replace(key, maps[key]);
     }
     return t;
 }
 
 function checkAnswer(isCorrect, q) {
     const area = document.getElementById('question-area');
-    const isBoss = (gameState.mode === 'stage' && gameState.qIndex === 9);
+    const isBoss = (gameState.mode === 'stage' && gameState.qIndex === gameState.queue.length - 1);
 
     if(isCorrect) {
         gameState.score += 10 + gameState.combo;
         gameState.combo++;
         gameState.expGained += 20;
+        
+        if(gameState.mode === 'endless') {
+            gameState.endlessCorrectCount++;
+            if(gameState.endlessCorrectCount > saveData.maxEndlessScore) {
+                saveData.maxEndlessScore = gameState.endlessCorrectCount;
+                saveGame();
+            }
+        }
+
         let gold = 20; 
         if(isBoss) { gold += 50; gameState.expGained += 50; unlockAchievement('boss_killer'); }
-        if(gameState.coinActive) gold *= 2; 
         gameState.goldGained += gold;
 
         if(q.type === 'full' || q.type === 'fill') gameState.writeCorrectCount++;
@@ -786,7 +863,7 @@ function renderSortUI(q) {
 }
 function resetSort() { 
     gameState.sortAns = []; 
-    gameState.shuffledSortOptions = [...gameState.queue[gameState.qIndex].o].sort(() => Math.random() - 0.5);
+    gameState.shuffledSortOptions = shuffleArray([...gameState.queue[gameState.qIndex].o]);
     renderSortUI(gameState.queue[gameState.qIndex]); 
 }
 function checkWritingAnswer() {
@@ -814,20 +891,19 @@ function closeExplanation() {
     showQuestion();
 }
 function showEndlessModal() { document.getElementById('endless-modal').classList.remove('hidden'); }
-// 修正: 帰還時にモーダルを閉じて終了する
+
+// --- エンドレス継続処理 ---
 function continueEndless() {
     document.getElementById('endless-modal').classList.add('hidden');
-    gameState.endlessWave++;
-    if(gameState.hp < gameState.maxHp) { gameState.hp++; updateHpBar(); }
+    gameState.hp = gameState.maxHp; // 体力全回復
+    updateHpBar();
     addEndlessQuestions();
-    document.getElementById('q-category').innerText = `Endless Wave ${gameState.endlessWave}`;
     showQuestion();
 }
 
 function finishGame(isClear) {
-    // 修正: エンドレスのモーダルを確実に閉じる
     document.getElementById('endless-modal').classList.add('hidden');
-    
+
     showScreen('screen-result');
     const title = document.getElementById('result-title');
     const badge = document.getElementById('rank-badge');
@@ -843,7 +919,7 @@ function finishGame(isClear) {
     } else {
         title.innerText = "QUEST CLEAR!";
         title.style.color = "#2d3436";
-        const rate = (10 - gameState.mistakes.length) / 10;
+        const rate = (gameState.queue.length - gameState.mistakes.length) / gameState.queue.length; 
         let rank = 'C';
         if(rate >= 1.0) rank = 'S';
         else if(rate >= 0.8) rank = 'A';
@@ -866,10 +942,14 @@ function finishGame(isClear) {
         if(gameState.mistakes.length === 0) unlockAchievement('no_miss');
         if(gameState.hp === gameState.maxHp) unlockAchievement('full_hp');
         if(gameState.hp === 1) unlockAchievement('survivor');
+
+        if(gameState.coinActive) {
+            gameState.goldGained *= 2;
+        }
     }
 
     saveData.gold += gameState.goldGained;
-    document.getElementById('result-gold').innerText = `+${gameState.goldGained} G`;
+    document.getElementById('result-gold').innerText = `+${gameState.goldGained} G` + (gameState.coinActive && isClear ? " (x2)" : "");
     if(saveData.gold >= 1000) unlockAchievement('rich');
 
     processExp();
@@ -884,7 +964,7 @@ function checkInGameAchievements() {
     if(gameState.combo >= 30) unlockAchievement('combo_30');
     if(gameState.combo >= 50) unlockAchievement('combo_50');
     if(gameState.mode === 'endless') {
-        const count = gameState.qIndex + 1;
+        const count = gameState.endlessCorrectCount;
         if(count >= 10) unlockAchievement('end_10');
         if(count >= 30) unlockAchievement('end_30');
     }
@@ -966,10 +1046,9 @@ function debugReset() {
         };
         saveGame();
         
-        // メモリリセット
         gameState = {
             mode: '', stageId: 1, queue: [], qIndex: 0, score: 0, combo: 0, mistakes: [],
-            hp: 3, maxHp: 3, expGained: 0, goldGained: 0, endlessWave: 0,
+            hp: 5, maxHp: 5, expGained: 0, goldGained: 0, endlessWave: 0, // 3 -> 5
             writeCorrectCount: 0, shieldActive: false, pencilUsed: false, coinActive: false, debugClicks: 0
         };
         
